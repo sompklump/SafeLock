@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SafeLock", "SafeLock\SafeLock.csproj", "{785B799B-9444-4900-BB84-7644C160D58A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{785B799B-9444-4900-BB84-7644C160D58A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{785B799B-9444-4900-BB84-7644C160D58A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{785B799B-9444-4900-BB84-7644C160D58A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{785B799B-9444-4900-BB84-7644C160D58A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8858E985-A642-487D-89BC-C5361BC0A74A}
+	EndGlobalSection
+EndGlobal
