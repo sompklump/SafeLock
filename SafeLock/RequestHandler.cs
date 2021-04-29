@@ -25,8 +25,9 @@ namespace SafeLock
                 case REQUEST_TYPE_.LOGIN:
                     try
                     {
-                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Ssl3;
-                        ServicePointManager.ServerCertificateValidationCallback = (snder, cert, chain, error) => true;
+                        //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Ssl3;
+                        //ServicePointManager.ServerCertificateValidationCallback = (snder, cert, chain, error) => true;
+                        ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
                         var request = (HttpWebRequest)WebRequest.Create("https://hakuni.net/SafeLock/index.php");
                         var postData = $"islogin={Uri.EscapeDataString("true")}&username={Uri.EscapeDataString(inData.Username)}&password={Uri.EscapeDataString(inData.Password)}";
                         var data = Encoding.ASCII.GetBytes(postData);

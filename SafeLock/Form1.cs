@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -19,7 +20,7 @@ namespace SafeLock
         string darkMode_color1 = "#242424";
         string darkMode_color2 = "#4f4f4f";
         string darkMode_color3 = "#707070";
-        Taskbar taskbar = new Taskbar();
+        SpecialSystemBlock taskbar;
         List<Form2> screens = new List<Form2>();
         bool allowedClosing = false;
         string ALLOWED_LOGIN_FILE_PATH = $"{Application.LocalUserAppDataPath}/validation/ALLOWED";
@@ -27,6 +28,7 @@ namespace SafeLock
         public Form1()
         {
             InitializeComponent();
+            taskbar = new SpecialSystemBlock(this);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -95,8 +97,7 @@ namespace SafeLock
             if (!Directory.Exists(ALLOWED_LOGIN_DIR_PATH))
                 Directory.CreateDirectory(ALLOWED_LOGIN_DIR_PATH);
             string data = $@"// Information for Safe Lock backend
-CloseTime: {DateTime.Now}
-";
+CloseTime: {DateTime.Now}";
             File.WriteAllText(ALLOWED_LOGIN_FILE_PATH, data);
         }
 
@@ -109,6 +110,8 @@ CloseTime: {DateTime.Now}
                 e.SuppressKeyPress = true;
                 TryLogin();
             }
+            if (e.KeyCode == Keys.Delete && ModifierKeys == Keys.Alt && ModifierKeys == Keys.Control)
+                e.Handled = true;
         }
     }
     public struct LoginCredentials
@@ -117,8 +120,28 @@ CloseTime: {DateTime.Now}
         public string Password;
         public string MAC;
     }
-    class Taskbar
+    class SpecialSystemBlock
     {
+        int lockoutAttempts = 3;
+        Form1 mainForm;
+
+        void AttemptedBypass()
+        {
+            lockoutAttempts -= 1;
+            if (lockoutAttempts <= 0)
+                BlockSystem();
+        }
+
+        void BlockSystem() { 
+
+        }
+
+        public SpecialSystemBlock(Form1 form)
+        {
+            mainForm = form;
+            // hide ctor
+        }
+
         #region Windows Special Keys
         [StructLayout(LayoutKind.Sequential)]
         private struct KBDLLHOOKSTRUCT
@@ -153,10 +176,8 @@ CloseTime: {DateTime.Now}
 
                 // Disabling Windows keys 
 
-                if (objKeyInfo.key == Keys.RWin || objKeyInfo.key == Keys.LWin || objKeyInfo.key == Keys.Tab && HasAltModifier(objKeyInfo.flags) || objKeyInfo.key == Keys.Escape && (Control.ModifierKeys & Keys.Control) == Keys.Control)
-                {
+                if (objKeyInfo.key == Keys.RWin || objKeyInfo.key == Keys.LWin || objKeyInfo.key == Keys.Tab && HasAltModifier(objKeyInfo.flags) || objKeyInfo.key == Keys.Escape && (Control.ModifierKeys & Keys.Control) == Keys.Control || objKeyInfo.key == Keys.Delete && (Control.ModifierKeys & Keys.Control) == Keys.Control && (Control.ModifierKeys & Keys.Alt) == Keys.Alt)
                     return (IntPtr)1; // if 0 is returned then All the above keys will be enabled
-                }
             }
             return CallNextHookEx(ptrHook, nCode, wp, lp);
         }
@@ -164,6 +185,21 @@ CloseTime: {DateTime.Now}
         bool HasAltModifier(int flags)
         {
             return (flags & 0x20) == 0x20;
+        }
+
+        Task KillTaskManager()
+        {
+            Process[] processes;
+            while (true)
+            {
+                Thread.Sleep(150);
+                if ((processes = Process.GetProcessesByName("Taskmgr")).Length <= 0) continue;
+                AttemptedBypass();
+                foreach (Process p in processes)
+                    p.Kill();
+                mainForm.Focus();
+                MessageBox.Show($"Trying to bypass this will result in a lockout.\r\nYou have {lockoutAttempts} left!", "Bypass detected");
+            }
         }
         #endregion
         #region Taskbar
@@ -181,7 +217,6 @@ CloseTime: {DateTime.Now}
 
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 1;
-        #endregion
 
         protected static int Handle
         {
@@ -200,11 +235,7 @@ CloseTime: {DateTime.Now}
                 return handleOfStartButton;
             }
         }
-
-        public Taskbar()
-        {
-            // hide ctor
-        }
+        #endregion
 
         public void Show()
         {
@@ -214,6 +245,7 @@ CloseTime: {DateTime.Now}
 
         public void Hide()
         {
+            Task.Run(() => KillTaskManager());
             ShowWindow(Handle, SW_HIDE);
             ShowWindow(HandleOfStartButton, SW_HIDE);
             ProcessModule objCurrentModule = Process.GetCurrentProcess().MainModule;
