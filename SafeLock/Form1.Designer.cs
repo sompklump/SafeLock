@@ -122,7 +122,6 @@ namespace SafeLock
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Safe Lock";
-            this.TopMost = true;
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -135,10 +134,10 @@ namespace SafeLock
         #endregion
 
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.TextBox password_Input;
-        private System.Windows.Forms.Button login_Btn;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button close_Btn;
+        public System.Windows.Forms.TextBox password_Input;
+        public System.Windows.Forms.Button login_Btn;
+        public System.Windows.Forms.Label label1;
     }
 }
 
