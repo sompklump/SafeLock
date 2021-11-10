@@ -80,7 +80,7 @@ namespace SafeLock
         bool TryLogin()
         {
             LoginCredentials lc = new LoginCredentials();
-            lc.Username = "klump";
+            lc.Username = "klump"; // Klump er mitt nett alias
             lc.Password = password_Input.Text;
 
             RequestHandler rh = new RequestHandler();
