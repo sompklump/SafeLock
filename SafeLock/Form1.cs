@@ -12,6 +12,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
+using HakuniAssets.IO;
+using Newtonsoft.Json.Linq;
 
 namespace SafeLock
 {
@@ -25,6 +28,13 @@ namespace SafeLock
         bool allowedClosing = false;
         string ALLOWED_LOGIN_FILE_PATH = $"{Application.LocalUserAppDataPath}/validation/ALLOWED";
 
+        [DllImport("user32.dll")]
+        public static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
+        [DllImport("user32.dll")]
+        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        const int PC_LOCK_HOTKEY_ID = 1;
+
         public Form1()
         {
             InitializeComponent();
@@ -33,7 +43,8 @@ namespace SafeLock
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            foreach(Screen sc in Screen.AllScreens)
+            RegisterHotKey(this.Handle, PC_LOCK_HOTKEY_ID, 8, (int)Keys.L);
+            foreach (Screen sc in Screen.AllScreens)
             {
                 if (sc.Primary) continue;
                 Form2 form2 = new Form2(this);
@@ -45,6 +56,16 @@ namespace SafeLock
             label1.Location = new Point((panel1.Size.Width / 2) - (label1.Size.Width / 2), (panel1.Size.Height / 2) - 55);
             password_Input.Location = new Point((panel1.Size.Width / 2) - (password_Input.Size.Width / 2), panel1.Size.Height / 2);
             login_Btn.Location = new Point((panel1.Size.Width / 2) - (login_Btn.Size.Width / 2), (panel1.Size.Height / 2) + 35);
+        }
+
+        // Lock screen activated
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == 0x0312 && m.WParam.ToInt32() == PC_LOCK_HOTKEY_ID)
+            {
+
+            }
+            base.WndProc(ref m);
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -69,40 +90,43 @@ namespace SafeLock
 
         private void login_Btn_Click(object sender, EventArgs e)
         {
-            if (!TryLogin())
-            {
-                if (MessageBox.Show("Wrong passphrase!", "Could Not Log In", MessageBoxButtons.RetryCancel, MessageBoxIcon.Asterisk) == DialogResult.Cancel) Close();
-
-                return;
-            }
+            Login();
         }
 
         bool TryLogin()
         {
             LoginCredentials lc = new LoginCredentials();
-            lc.Username = "klump"; // Klump er mitt nett alias
+            lc.Username = "klump";
             lc.Password = password_Input.Text;
 
             RequestHandler rh = new RequestHandler();
             string rcd;
             if(rh.SendData(REQUEST_TYPE_.LOGIN, lc, out rcd))
             {
-                MessageBox.Show(rcd);
-                Login();
-                return true;
+                JObject json = JSON.ReadJsonText(rcd);
+                if ((bool)json["login_passed"])
+                    return true;
+                return false;
             }
-            MessageBox.Show(rcd);
             return false;
         }
 
         void Login()
         {
+            if (!TryLogin())
+            {
+                MessageBox.Show("Wrong passphrase!", "Could not log in", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                password_Input.Text = string.Empty;
+                return;
+            }
+            MessageBox.Show("Correct passphrase, welcome!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
             string ALLOWED_LOGIN_DIR_PATH = Application.LocalUserAppDataPath + "/validation";
             if (!Directory.Exists(ALLOWED_LOGIN_DIR_PATH))
                 Directory.CreateDirectory(ALLOWED_LOGIN_DIR_PATH);
-            string data = $@"// Information for Safe Lock backend
+            string data = $@"// Safe Lock backend
 CloseTime: {DateTime.Now}";
             File.WriteAllText(ALLOWED_LOGIN_FILE_PATH, data);
+            CloseProcess();
         }
 
         private void password_Input_KeyDown(object sender, KeyEventArgs e)
@@ -112,7 +136,7 @@ CloseTime: {DateTime.Now}";
             if (e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
-                TryLogin();
+                Login();
             }
             if (e.KeyCode == Keys.Delete && ModifierKeys == Keys.Alt && ModifierKeys == Keys.Control)
                 e.Handled = true;

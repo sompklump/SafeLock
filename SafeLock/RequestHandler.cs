@@ -25,15 +25,15 @@ namespace SafeLock
                 case REQUEST_TYPE_.LOGIN:
                     try
                     {
-                        //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Ssl3;
-                        //ServicePointManager.ServerCertificateValidationCallback = (snder, cert, chain, error) => true;
+                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Ssl3;
+                        ServicePointManager.ServerCertificateValidationCallback = (snder, cert, chain, error) => true;
                         receivedData = null;
                         ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
                         var request = (HttpWebRequest)WebRequest.Create("http://localhost/safelock/");
                         var postData = $"islogin={Uri.EscapeDataString("false")}&username={Uri.EscapeDataString(inData.Username)}&password={Uri.EscapeDataString(inData.Password)}";
                         var data = Encoding.ASCII.GetBytes(postData);
-                        request.UserAgent = "HakuniLogin";
-                        request.Accept = "*/*";
+                        request.UserAgent = "HakuniLogin_SafeLock";
+                        request.Accept = "application/json";
                         request.UseDefaultCredentials = true;
                         request.Proxy.Credentials = CredentialCache.DefaultCredentials;
 
@@ -43,9 +43,6 @@ namespace SafeLock
                         using (var stream = request.GetRequestStream())
                             stream.Write(data, 0, data.Length);
                         var response = (HttpWebResponse)request.GetResponse();
-                        MessageBox.Show(response.StatusCode.ToString());
-                        if (response.StatusCode == HttpStatusCode.NotFound)
-                            return false;
                         if (response.StatusCode != HttpStatusCode.OK)
                             return false;
 

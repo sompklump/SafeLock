@@ -28,7 +28,7 @@ namespace SafeLock
                 SystemLockout();
                 return null;
             }
-            MessageBox.Show($"Trying to bypass this will result in a lockout.\r\nYou have {lockoutAttempts} left!", "Bypass detected");
+            MessageBox.Show($"Trying to bypass this will result in a lockout.\r\nYou have {lockoutAttempts} attempts left!", "Bypass detected");
             lockoutAttempts -= 1;
             return null;
         }
@@ -36,7 +36,7 @@ namespace SafeLock
         public Task SystemLockout()
         {
             mainForm.password_Input.Visible = mainForm.login_Btn.Visible = mainForm.label1.Visible = false;
-            MessageBox.Show("You have been locked out from this device due to too many failed attempts!", "System Lockout", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+            MessageBox.Show("You have been locked out from the system due to too many failed attempts!", "System Lockout", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             return null;
         }
 
